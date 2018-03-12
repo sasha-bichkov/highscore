@@ -37,9 +37,9 @@ module Highscore
         :ignore_case => false,
         :ignore => nil,
         :word_pattern => /\p{Word}+/u,
-        :stemming => false
+        :stemming => false,
+        :stemming_lang => nil
       }
-
     end
 
     # configure ranking
@@ -116,7 +116,11 @@ module Highscore
     # @return Highscore::Keyword
     def extract_keyword word
       word = word.to_s
-      word = word.stem if @emphasis[:stemming]
+
+      if @emphasis[:stemming]
+        lang = @emphasis[:stemming_lang]
+        word = lang ? Lingua.stemmer(word, language: lang) : word.stem
+      end
 
       unless ignore?(word)
         Highscore::Keyword.new(word, weight(word))
@@ -220,6 +224,11 @@ module Highscore
     # @return TrueClass|FalseClass
     def use_stemming?
       return false unless @emphasis[:stemming]
+
+      unless @emphasis[:stemming_lang].nil?
+        require 'lingua/stemmer'
+        return 'ruby-stemming'
+      end
 
       gems = %w(fast_stemmer stemmer)
 

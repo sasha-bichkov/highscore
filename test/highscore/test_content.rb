@@ -109,12 +109,12 @@ class TestContent < Highscore::TestCase
         require 'stemmer'
         loaded_stemmer = true
       rescue LoadError
-        # skip this test, neither fast_stemmer nor stemmer is installed!
+        # skip this test, neither fast_stemmer nor stemmer, nor ruby-stemmer is installed!
         fail
       end
     end
 
-    if loaded_stemmer
+    if loaded_stemmer && loaded_stemmer != 'ruby-stemmer'
       keywords = 'word words boards board woerter wort'.keywords do
         set :stemming, true
       end
@@ -127,6 +127,32 @@ class TestContent < Highscore::TestCase
     end
   end
   
+
+  def test_stemming_ru
+    loaded_stemmer = false
+
+    begin
+      require 'lingua/stemmer'
+      loaded_stemmer = 'ruby-stemmer'
+      rescue LoadError
+        # skip this test, neither fast_stemmer nor stemmer, nor ruby-stemmer is installed!
+        fail
+    end
+
+    if loaded_stemmer && loaded_stemmer == 'ruby-stemmer'
+      keywords = 'брат братья братьям сестра'.keywords do
+        set :stemming, true
+        set :stemming_lang, 'ru'
+      end
+
+      assert_equal 2, keywords.length
+
+      keywords.each do |k|
+        assert %w{брат сестр}.include?(k.text)
+      end
+    end
+  end
+
   def test_language_english
     assert_equal :english, Highscore::Content.new("this is obviously an english text").language
   end
