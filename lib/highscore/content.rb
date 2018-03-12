@@ -77,16 +77,21 @@ module Highscore
       else
         used_wordlist = wordlist
       end
-        
+
       @emphasis[:stemming] = use_stemming?
 
-      keywords = Keywords.new
-      Keywords.find_keywords(processed_content, used_wordlist, word_pattern).each do |word|
-        keyword = extract_keyword(word)
-        keywords << keyword unless keyword.nil?
+      keywords = []
+      Keywords.find_keywords(processed_content, word_pattern).each do |word|
+        keywords << extract_keyword(word)
       end
 
-      keywords
+      filtered_keywords = Keywords.new
+      Keywords.pick_keywords(keywords, used_wordlist).each do |word|
+        keyword = to_keyword(word)
+        filtered_keywords << keyword unless keyword.nil?
+      end
+
+      filtered_keywords
     end
 
     # get the used wordlist
@@ -122,6 +127,10 @@ module Highscore
         word = lang ? Lingua.stemmer(word, language: lang) : word.stem
       end
 
+      word
+    end
+
+    def to_keyword word
       unless ignore?(word)
         Highscore::Keyword.new(word, weight(word))
       end

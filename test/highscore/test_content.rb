@@ -23,6 +23,20 @@ class TestContent < Highscore::TestCase
     assert_equal 2, content.keywords.length
   end
 
+  def test_whitelist_stemming
+    content = 'Брат Братья Братьям Брату Сестра'
+
+    whitelist = Highscore::Whitelist.load ['Брат', 'Сестр']
+    content = Highscore::Content.new content, whitelist
+
+    content.configure do
+      set :stemming, true
+      set :stemming_lang, 'ru'
+    end
+
+    assert_equal 2, content.keywords.length
+  end
+
   # https://github.com/domnikl/highscore/issues/7
   def test_keywords_fixnum
     content = '522 abc 232'
@@ -126,7 +140,6 @@ class TestContent < Highscore::TestCase
       end
     end
   end
-  
 
   def test_stemming_ru
     loaded_stemmer = false

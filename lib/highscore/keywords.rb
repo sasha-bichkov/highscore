@@ -11,14 +11,16 @@ module Highscore
     # @param wordlist Highscore::Wordlist
     # @param pattern Regex
     # @return Highscore::Keywords
-    def self.find_keywords content, wordlist, pattern=/\w+/
-      keywords = content.to_s.scan(pattern).flatten
-      
+    def self.find_keywords content, pattern=/\w+/
+      content.to_s.scan(pattern).flatten.sort
+    end
+
+    def self.pick_keywords keywords, wordlist
       if not wordlist.nil? and wordlist.respond_to? :filter
         keywords = wordlist.filter(keywords)
       end
-      
-      keywords.sort
+
+      keywords
     end
 
     # init a new keyword collection
@@ -55,6 +57,7 @@ module Highscore
     # @param keyword Highscore::Keyword
     # @return Highscore::Keywords
     def <<(keyword)
+      # p keyword
       if @keywords.has_key?(keyword.text)
         @keywords[keyword.text].weight += keyword.weight
       else
