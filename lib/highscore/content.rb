@@ -1,5 +1,6 @@
 $:.unshift(File.dirname(__FILE__))
 require 'keywords'
+require 'phrases'
 
 module Highscore
   class Content
@@ -8,8 +9,9 @@ module Highscore
 
     # @param content String
     # @param wordlist Highscore::Wordlist
-    def initialize(content, wordlist = nil)
+    def initialize(content, wordlist = nil, phrases = nil)
       @content = content
+      @phrases = phrases
       @whitelist = @blacklist = bonuslist = nil
       @language_wordlists = {}
 
@@ -39,6 +41,7 @@ module Highscore
         :word_pattern => /\p{Word}+/u,
         :stemming => false,
         :stemming_lang => nil
+        # TODO: :phrasing => false | true
       }
     end
 
@@ -80,8 +83,17 @@ module Highscore
 
       @emphasis[:stemming] = use_stemming?
 
+      content = processed_content
+
       keywords = []
-      Keywords.find_keywords(processed_content, word_pattern).each do |word|
+      if @phrases
+        Phrases.find_phrases(content, @phrases).each do |phrase|
+          keywords << phrase
+          content = content.gsub phrase, ' '
+        end
+      end
+
+      Keywords.find_keywords(content, word_pattern).each do |word|
         keywords << extract_keyword(word)
       end
 
